@@ -1,16 +1,6 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor,  ProcessPoolExecutor
 from string import punctuation
-
-'''
-if __name__ == "__main__":
-    pool = ThreadPoolExecutor(1)
-    future = pool.submit(f, 1)
-    future1 = pool.submit(f, 2)
-    print(future.done())
-    print(future1.done())
-    print(future.result())
-    print(future1.result())
-'''
+import time
 
 def read_file(file_name):
     words_list = []
@@ -39,14 +29,28 @@ def words_counting(words_list, word_counter):
     return local_dict
 
 
-input_list = read_file('text.txt')
-threads = 3
+while True:
+    version = str(input("For ThreadPoolExecutor enter - t, for  ProcessPoolExecutor enter - m: "))
+    number_of_workers = int(input("Enter a number of max_workers: "))
+
+    if version == "t" and number_of_workers > 0:
+        type = ThreadPoolExecutor
+        break
+
+    elif version == "m" and number_of_workers > 0:
+        type = ProcessPoolExecutor
+        break
+
+input_list = read_file('text1.txt')
+threads = 4
 avg = len(input_list) / threads
 last = 0
 word_counter = {}
 results = []
 
-with ThreadPoolExecutor(max_workers=5) as pool:
+start_time = time.time()
+
+with type(max_workers=number_of_workers) as pool:
     while last < len(input_list):
         results.append(pool.submit(words_counting, input_list[int(last):int(last + avg)], word_counter))
         last += avg
@@ -59,5 +63,5 @@ with ThreadPoolExecutor(max_workers=5) as pool:
             else:
                 word_counter[word] = future.result()[word]
 
-
+print(time.time() - start_time)
 write_file(word_counter, 'result.txt')
